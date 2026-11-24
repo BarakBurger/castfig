@@ -53,6 +53,10 @@ Then add it to `<your-reel>/web/index.html`, **after `chars.js`**:
 | `glasses` | `round` `square` `rect` (+ `glassesCol`) |
 | `animal` | `bear` `panda` `lion` `whiteLion` `tiger` `whiteTiger` `dog` `cat` (+ `furCol` `muzCol` `maneCol`) |
 | `wings` `halo` | `true`, for a Cupid, an angel or a fairy (+ `wingCol` `haloCol`) |
+| `necklace` | `pearls` `chain` `pendant` (+ `necklaceCol`) |
+| `earrings` | `hoop` `stud` `drop` (+ `earringCol`) |
+| `fur` `watch` `heels` | `true` (+ `furStoleCol` `watchCol` `heelCol`) |
+| `nails` | a colour, on both hands |
 
 ```js
 // a person
@@ -64,6 +68,10 @@ castFig(ctx, { x: 540, y: 1560, s: 900, build: 'broad', hair: 'buzz', hairCol: '
 castFig(ctx, { x: 540, y: 1560, s: 900, animal: 'panda', outfit: 'hoodie',
                cols: ['#d8604e', '#d8604e'] });
 
+// presets are plain options objects, so override anything
+castFig(ctx, Object.assign({}, RICH_MAN,   { x, y, s, t }));
+castFig(ctx, Object.assign({}, GLAM_WOMAN, { x, y, s, t }));
+
 // a Cupid: CUPID is a plain options object, so override anything
 castFig(ctx, Object.assign({}, CUPID, { x: 540, y: 1560, s: 640, t, skin: 'brown', hair: 'afro' }));
 
@@ -73,6 +81,11 @@ petFig(ctx, { x: 790, y: 1560, s: 420, kind: 'dog', t });
 
 `BUILD_LIST`, `OUTFIT_LIST`, `HAIR_LIST`, `HAIRCOL`, `SKIN_LIST` and `ANIMAL_LIST` are exported so
 you can iterate the whole set, which is how the sheets below are drawn.
+
+The presets (`CUPID`, `RICH_MAN`, `GLAM_WOMAN`) are bundles of the options above and nothing more.
+The parts are named for what they are, a stole and pearls and dark glasses, rather than for a
+character type, because the same parts are a film star, a mourner or a villain depending only on
+what the script has them doing.
 
 ### The two colours
 
@@ -92,6 +105,8 @@ black and white; `leather` darkens whatever you give it by 30% so it reads as le
 | 16 hairstyles | 22 hair colours |
 | ![animals](sheet/9-animals.jpg) | ![cupid](sheet/11-cupid.jpg) |
 | animals in clothes | Cupid, wings and halo |
+| ![parts](sheet/13-jewellery-and-parts.jpg) | ![money](sheet/14-money-outfits-and-props.jpg) |
+| shades, jewellery, fur, heels, nails | pinstripe, glam, and things to hold |
 
 Also in `sheet/`: skin tones, four-legged pets, and the drop-in proof below. `examples/` holds the
 `shots.js` files that drew every page, so you can re-render them after a change:

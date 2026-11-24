@@ -424,6 +424,56 @@ const OUTFIT = {
     },
   },
 
+  pinstripe: {
+    sleeve: 1,
+    paint(c, B, P) {
+      const { cols, top, bot, W2 } = P;
+      jacketFront(c, B, P, cols[0], '#f6f4ee', dark(cols[0], .20));
+      c.save();                                       // the stripes, over the jacket only
+      c.beginPath();
+      c.rect(-W2, top - .02, W2 - B.sh * .40, (bot - top) + .05);
+      c.rect(B.sh * .40, top - .02, W2, (bot - top) + .05);
+      c.clip();
+      c.strokeStyle = 'rgba(240,238,230,.42)'; c.lineWidth = .006;
+      for (let x = -W2; x < W2; x += .030) { c.beginPath(); c.moveTo(x, top - .02); c.lineTo(x, bot + .03); c.stroke(); }
+      c.restore();
+      const tie = cols[1] !== cols[0] ? cols[1] : '#8c2733';
+      c.fillStyle = tie;
+      c.beginPath(); c.moveTo(-B.sh * .13, top + .055); c.lineTo(B.sh * .13, top + .055);
+      c.lineTo(B.sh * .10, top + .115); c.lineTo(-B.sh * .10, top + .115); c.closePath(); c.fill();
+      c.beginPath(); c.moveTo(-B.sh * .10, top + .115); c.lineTo(B.sh * .10, top + .115);
+      c.lineTo(B.sh * .13, bot - .055); c.lineTo(0, bot - .022);
+      c.lineTo(-B.sh * .13, bot - .055); c.closePath(); c.fill();
+      c.fillStyle = '#f2cf5a';                        // a pocket square
+      c.beginPath(); c.moveTo(B.sh * .50, top + .175); c.lineTo(B.sh * .82, top + .175);
+      c.lineTo(B.sh * .66, top + .142); c.closePath(); c.fill();
+    },
+  },
+
+  glam: {
+    skirt: { hem: -.185, w: .180 },
+    paint(c, B, P) {
+      const { cols, skin, top, bot, W2 } = P;
+      c.fillStyle = skin; c.fillRect(-W2, top - .02, W2 * 2, (bot - top) + .05);
+      c.fillStyle = cols[0];
+      c.beginPath();                                   // one shoulder, cut across the chest
+      c.moveTo(-B.chest - .03, top + .150);
+      c.quadraticCurveTo(-B.chest * .30, top + .070, B.sh * .46, top - .03);
+      c.lineTo(B.sh + .03, top + .020);
+      c.lineTo(B.hip + .03, bot + .03);
+      c.lineTo(-B.hip - .03, bot + .03);
+      c.closePath(); c.fill();
+      const trim = cols[1] !== cols[0] ? cols[1] : light(cols[0], .4);
+      c.fillStyle = trim; c.fillRect(-W2, bot - .080, W2 * 2, .022);   // a waist band
+      const R = rng(9);                                // a little sparkle, not a disco ball
+      c.fillStyle = 'rgba(255,255,255,.45)';
+      for (let i = 0; i < 26; i++) {
+        const x = (R() - .5) * B.chest * 1.9, y = lerp(top + .17, bot - .03, R());
+        c.beginPath(); c.arc(x, y, .006, 0, TAU); c.fill();
+      }
+    },
+  },
+
   toga: {
     base: 'skin',
     paint(c, B, P) {
@@ -720,7 +770,7 @@ const HAIR = {
 // what makes two male figures read as two different people.
 
 const BEARD_LIST = ['stubble', 'short', 'full', 'goatee', 'moustache'];
-const GLASSES_LIST = ['round', 'square', 'rect'];
+const GLASSES_LIST = ['round', 'square', 'rect', 'shades'];
 
 function drawBeard(ctx, kind, col) {
   if (!kind || kind === 'none') return;
@@ -769,6 +819,7 @@ function drawBeard(ctx, kind, col) {
 
 function drawGlasses(ctx, kind, col = INK) {
   if (!kind || kind === 'none') return;
+  if (kind === 'shades') return drawShades(ctx);
   const ex = .072, ey = HY - .005, lw = .012;
   ctx.save();
   ctx.strokeStyle = col; ctx.lineWidth = lw; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
@@ -850,7 +901,17 @@ function castFig(ctx, o) {
     const p = limbPts(side * legX, hipY, side, a1, a2, .155, .155);
     ctx.beginPath(); ctx.moveTo(...p[0]); ctx.lineTo(...p[1]); ctx.lineTo(...p[2]);
     ctx.lineWidth = limbW; ctx.strokeStyle = ink; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.stroke();
-    ellipse(ctx, p[2][0] + side * .022, p[2][1] + .004, .042, .022, 0); ctx.fillStyle = ink; ctx.fill();
+    if (o.heels && !sil) {
+      ctx.save(); ctx.translate(p[2][0], p[2][1]); ctx.scale(side, 1);
+      ctx.beginPath();
+      ctx.moveTo(-.012, -.016); ctx.lineTo(.052, .014); ctx.lineTo(.052, .030);
+      ctx.lineTo(-.004, .030); ctx.lineTo(-.014, .006);
+      ctx.closePath(); fillStroke(ctx, o.heelCol || '#2b2028', .012);
+      line(ctx, -.010, .006, -.010, .030, .012, o.heelCol || '#2b2028');
+      ctx.restore();
+    } else {
+      ellipse(ctx, p[2][0] + side * .022, p[2][1] + .004, .042, .022, 0); ctx.fillStyle = ink; ctx.fill();
+    }
   }
 
   // skirt, if this outfit has one: after the legs, before the torso, so the hem
@@ -870,6 +931,10 @@ function castFig(ctx, o) {
   // torso
   if (sil) { torsoPath(ctx, B); ctx.fillStyle = sil; ctx.fill(); }
   else paintOutfit(ctx, B, o, cols, skin);
+  if (!sil) {
+    if (o.necklace) drawNecklace(ctx, B, o.necklace, o.necklaceCol);
+    if (o.fur) drawFur(ctx, B, o.furStoleCol);
+  }
 
   // arms
   for (const [k, side] of [['L', -1], ['R', 1]]) {
@@ -890,6 +955,8 @@ function castFig(ctx, o) {
     }
     if (o.prop) o.prop(ctx, k, p[2], p[3], side);
     circle(ctx, p[2][0], p[2][1], .03 * (limbW / .028)); ctx.fillStyle = ink; ctx.fill();
+    if (!sil && o.nails) drawNails(ctx, p[2], o.nails);
+    if (!sil && o.watch && k === 'L') drawWatch(ctx, p[1], p[3], side, o.watchCol);
   }
 
   // head, with the hair in its transform
@@ -922,6 +989,7 @@ function castFig(ctx, o) {
     else if (hat === 'sailor') drawSailorHat(ctx, 0, HY, HR, lw);
     else if (hat === 'captain') drawCaptainHat(ctx, 0, HY, HR, lw);
     circle(ctx, 0, HY, HR); fillStroke(ctx, null, lw);
+    if (o.earrings) drawEarrings(ctx, o.earrings, o.earringCol);
     if (o.beard) drawBeard(ctx, o.beard, hairOf(o.beardCol || o.hairCol));
     if (H.front) { ctx.save(); H.front(ctx, hcol); ctx.restore(); }
   }
@@ -1204,3 +1272,182 @@ function mix2(a, b, k) {
   const A = hex2(a), B = hex2(b);
   return `rgb(${A.map((v, i) => Math.round(v + (B[i] - v) * k)).join(',')})`;
 }
+
+// ---------- money: jewellery, shades, fur, heels, and things to hold ----------
+// Built as separate parts on purpose. A gown, pearls and dark glasses are a glamorous
+// woman; they only become a character when a script says what she is doing. The two
+// presets at the bottom just bundle them.
+
+const GOLD = '#e8b43a', GOLD_D = '#a9761c', SILVER = '#cfd4d7';
+
+// Dark glasses. Registered as a `glasses` kind so it goes through the same slot.
+function drawShades(ctx, col = '#262129', lens = 'rgba(28,24,32,.88)') {
+  const ex = .072, ey = HY - .010;
+  ctx.save();
+  ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+  for (const side of [-1, 1]) {
+    ctx.beginPath();
+    ctx.moveTo(side * (ex - .050), ey - .044);
+    ctx.lineTo(side * (ex + .066), ey - .048);
+    ctx.quadraticCurveTo(side * (ex + .070), ey + .044, side * (ex + .004), ey + .040);
+    ctx.quadraticCurveTo(side * (ex - .050), ey + .030, side * (ex - .050), ey - .044);
+    ctx.closePath();
+    ctx.fillStyle = lens; ctx.fill();
+    ctx.lineWidth = .013; ctx.strokeStyle = col; ctx.stroke();
+    ctx.beginPath();                                   // a glint
+    ctx.moveTo(side * (ex - .030), ey - .030); ctx.lineTo(side * (ex + .010), ey + .018);
+    ctx.lineWidth = .010; ctx.strokeStyle = 'rgba(255,255,255,.30)'; ctx.stroke();
+  }
+  ctx.lineWidth = .013; ctx.strokeStyle = col;
+  ctx.beginPath(); ctx.moveTo(-ex + .050, ey - .030); ctx.lineTo(ex - .050, ey - .030); ctx.stroke();
+  for (const side of [-1, 1]) {
+    ctx.beginPath(); ctx.moveTo(side * (ex + .066), ey - .040);
+    ctx.lineTo(side * HR * .99, ey - .058); ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawEarrings(ctx, kind = 'hoop', col = GOLD) {
+  for (const side of [-1, 1]) {
+    const x = side * HR * .92, y = HY + HR * .22;
+    if (kind === 'stud') { circle(ctx, x, y, .018); fillStroke(ctx, col, .009); }
+    else if (kind === 'drop') {
+      line(ctx, x, y - .012, x, y + .030, .008, col);
+      circle(ctx, x, y + .046, .022); fillStroke(ctx, col, .009);
+    } else {
+      ctx.beginPath(); ctx.arc(x, y + .028, .030, -.5, Math.PI + .5);
+      ctx.lineWidth = .012; ctx.strokeStyle = col; ctx.stroke();
+    }
+  }
+}
+
+// Worn on the chest, so it goes on after the torso.
+function drawNecklace(ctx, B, kind = 'pearls', col = '#f3efe6') {
+  const y = B.top + .085;
+  ctx.save(); ctx.lineCap = 'round';
+  if (kind === 'chain') {
+    ctx.beginPath();
+    ctx.moveTo(-B.sh * .42, y - .02);
+    ctx.quadraticCurveTo(0, y + .115, B.sh * .42, y - .02);
+    ctx.lineWidth = .016; ctx.strokeStyle = GOLD_D; ctx.stroke();
+    ctx.lineWidth = .010; ctx.strokeStyle = GOLD; ctx.stroke();
+  } else if (kind === 'pendant') {
+    ctx.beginPath();
+    ctx.moveTo(-B.sh * .36, y - .01);
+    ctx.quadraticCurveTo(0, y + .080, B.sh * .36, y - .01);
+    ctx.lineWidth = .009; ctx.strokeStyle = col; ctx.stroke();
+    circle(ctx, 0, y + .086, .022); fillStroke(ctx, col, .010);
+  } else {                                             // pearls
+    for (let i = 0; i <= 10; i++) {
+      const t = i / 10, x = lerp(-B.sh * .40, B.sh * .40, t);
+      const yy = y + Math.sin(t * Math.PI) * .070;
+      circle(ctx, x, yy, .014); fillStroke(ctx, col, .007);
+    }
+  }
+  ctx.restore();
+}
+
+// A stole over both shoulders. After the torso, before the arms read as covered.
+function drawFur(ctx, B, col = '#d8c7ad') {
+  const y = B.top + .070, w = B.sh + .085;
+  ctx.save();
+  ctx.beginPath();
+  for (let i = 0; i <= 26; i++) {
+    const t = i / 26, x = lerp(-w, w, t);
+    const r = .044 + ((i % 3) * .011);
+    i ? ctx.lineTo(x, y + Math.sin(t * Math.PI) * .030 - r)
+      : ctx.moveTo(x, y + Math.sin(t * Math.PI) * .030 - r);
+  }
+  for (let i = 26; i >= 0; i--) {
+    const t = i / 26, x = lerp(-w, w, t);
+    const r = .044 + ((i % 3) * .011);
+    ctx.lineTo(x, y + Math.sin(t * Math.PI) * .030 + r);
+  }
+  ctx.closePath(); fillStroke(ctx, col, .014);
+  ctx.strokeStyle = 'rgba(34,28,34,.14)'; ctx.lineWidth = .008;
+  for (let i = 1; i < 9; i++) {
+    const x = lerp(-w * .8, w * .8, i / 9);
+    ctx.beginPath(); ctx.moveTo(x, y - .030); ctx.lineTo(x + .012, y + .030); ctx.stroke();
+  }
+  ctx.restore();
+}
+
+// A watch on one wrist, and nails on both hands. Drawn with the arms.
+function drawWatch(ctx, hand, ang, side, col = GOLD) {
+  ctx.save(); ctx.translate(hand[0], hand[1]); ctx.rotate(ang);
+  rrect(ctx, -.030, -.022, .060, .044, .010); fillStroke(ctx, '#3a3340', .010);
+  circle(ctx, 0, 0, .024); fillStroke(ctx, col, .010);
+  circle(ctx, 0, 0, .013); fillStroke(ctx, '#fffdf8', 0);
+  ctx.restore();
+}
+function drawNails(ctx, hand, col = '#c2283c') {
+  for (let i = 0; i < 3; i++) {
+    const a = -.6 + i * .6;
+    ellipse(ctx, hand[0] + Math.cos(a) * .026, hand[1] + Math.sin(a) * .026, .009, .006, a);
+    fillStroke(ctx, col, 0);
+  }
+}
+
+// ---------- things to hold, as `prop` callbacks ----------
+function cashFan(ctx, k, hand, ang, side) {
+  if (k !== 'R') return;
+  ctx.save(); ctx.translate(hand[0], hand[1]); ctx.rotate(ang - .5); ctx.scale(side, 1);
+  for (let i = 0; i < 4; i++) {
+    ctx.save(); ctx.rotate(-.30 + i * .20);
+    rrect(ctx, -.012, -.046, .150, .092, .010); fillStroke(ctx, '#c7dfb9', .010);
+    circle(ctx, .065, 0, .022); fillStroke(ctx, '#9cc088', .008);
+    ctx.restore();
+  }
+  ctx.restore();
+}
+function champagne(ctx, k, hand, ang, side) {
+  if (k !== 'R') return;
+  ctx.save(); ctx.translate(hand[0], hand[1]); ctx.rotate(ang * .25); ctx.scale(side, 1);
+  ctx.beginPath();
+  ctx.moveTo(-.034, -.100); ctx.lineTo(.034, -.100);
+  ctx.quadraticCurveTo(.020, -.020, .006, -.004); ctx.lineTo(-.006, -.004);
+  ctx.quadraticCurveTo(-.020, -.020, -.034, -.100);
+  ctx.closePath(); fillStroke(ctx, 'rgba(255,255,255,.26)', .010);
+  ctx.beginPath();
+  ctx.moveTo(-.028, -.070); ctx.lineTo(.028, -.070);
+  ctx.quadraticCurveTo(.016, -.022, .004, -.008); ctx.lineTo(-.004, -.008);
+  ctx.quadraticCurveTo(-.016, -.022, -.028, -.070);
+  ctx.closePath(); fillStroke(ctx, '#f2cf5a', 0);
+  line(ctx, 0, -.004, 0, .034, .010, INK);
+  ellipse(ctx, 0, .038, .030, .010); fillStroke(ctx, 'rgba(255,255,255,.30)', .009);
+  ctx.restore();
+}
+function handbag(ctx, k, hand, ang, side, col = '#8a2f3e') {
+  if (k !== 'L') return;
+  ctx.save(); ctx.translate(hand[0], hand[1]);
+  ctx.beginPath(); ctx.arc(0, .052, .046, Math.PI, 0);
+  ctx.lineWidth = .011; ctx.strokeStyle = GOLD_D; ctx.stroke();
+  rrect(ctx, -.062, .050, .124, .086, .014); fillStroke(ctx, col, .012);
+  rrect(ctx, -.016, .082, .032, .018, .008); fillStroke(ctx, GOLD, .008);
+  ctx.restore();
+}
+function cigar(ctx, k, hand, ang, side) {
+  if (k !== 'R') return;
+  ctx.save(); ctx.translate(hand[0], hand[1]); ctx.rotate(ang - .3); ctx.scale(side, 1);
+  rrect(ctx, 0, -.012, .110, .024, .010); fillStroke(ctx, '#6b4a2a', .009);
+  rrect(ctx, .086, -.012, .024, .024, .008); fillStroke(ctx, '#c08b52', 0);
+  circle(ctx, .004, 0, .011); fillStroke(ctx, '#d8604e', 0);
+  ctx.restore();
+}
+
+// ---------- two presets ----------
+const RICH_MAN = {
+  build: 'broad', skin: 'tan', hair: 'crop', hairCol: '#5a544c',
+  outfit: 'pinstripe', cols: ['#2b2a38', '#8c2733'],
+  glasses: 'shades', watch: true, necklace: 'chain', beard: 'short', beardCol: '#3f3a34',
+  face: { eyes: 'normal', mouth: 'smile' },
+  arms: { L: [.95, -2.1], R: [1.15, -.45] }, prop: cigar,
+};
+const GLAM_WOMAN = {
+  build: 'curvy', skin: 'light', hair: 'longWavy', hairCol: 'auburn',
+  outfit: 'glam', cols: ['#b4123f', '#f2cf5a'],
+  glasses: 'shades', earrings: 'drop', necklace: 'pearls', fur: true, heels: true,
+  nails: '#c2283c',
+  face: { eyes: 'normal', mouth: 'smile' },
+  arms: { L: [.34, -.16], R: [1.10, -.50] }, prop: champagne,
+};

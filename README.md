@@ -1,7 +1,8 @@
 # castfig
 
-A character kit for the **stick-figure** animation skill: body builds, outfits, hair, beards,
-glasses, animals, pets and a Cupid, all drawn in plain canvas 2D with no dependencies.
+A character kit for the Claude animation skills: body builds, outfits, hair, beards, glasses,
+animals, pets and a Cupid for the **stick-figure** canvas rig, and the same vocabulary again for
+the **three.js** rig. No dependencies beyond the pack itself.
 
 ![builds](sheet/1-builds.jpg)
 
@@ -159,6 +160,37 @@ gag, not a pet.
 smiling with the mouth curve inverted into a frown, a hairline sitting below the eyes, a lion's mane
 that read as a sunflower, wings wide enough to overlap the next figure, and a four-legged dog with a
 head the size of its body. `examples/` exists so you can look.
+
+## And the same thing in 3D
+
+`cast3d.js` does for the pack's **three.js** rig what `cast.js` does for the stick figure. That rig
+lives in the `zach-d-films` skill and renders procedural people, but it was built for an armour
+short, so its only outfits are `plate`, `knight`, `archer` and `vest`.
+
+```js
+import { makeFigure3D, STAND3 } from './cast3d.js';
+const f = makeFigure3D({ build: 'curvy', skin: 'tan', hair: 'bun', hairCol: 'auburn',
+                         glasses: 'round', outfit: 'dress', cols: ['#c2566f', '#e8b43a'] });
+f.setPose(STAND3);
+scene.add(f.root);
+```
+
+Six builds, six outfits (`tee` `shirt` `hoodie` `knit` `suit` `dress`), six hairstyles, four beards,
+three glasses, eight skin tones, twenty hair colours. **The option names are the same as the 2D
+kit's**, so one character description drives either renderer. `setPose` takes the same joint map
+`makeHuman` does.
+
+It imports exactly one thing from the pack, `torsoShell`, and builds the rest itself, so nothing in
+`human.js` is modified.
+
+| | |
+|---|---|
+| ![3d builds](sheet/15-3d-builds.jpg) | ![3d outfits](sheet/16-3d-outfits.jpg) |
+| six builds | six outfits, six skin tones |
+
+Two things that cost me a render. **ESM ignores `NODE_PATH`**, so symlink the kit's `node_modules`
+into the project rather than setting it. And `makeStage` returns the scene **directly**, not
+`{ scene }`.
 
 ## Who made this
 

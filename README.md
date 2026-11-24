@@ -145,6 +145,15 @@ smiling with the mouth curve inverted into a frown, a hairline sitting below the
 that read as a sunflower, wings wide enough to overlap the next figure, and a four-legged dog with a
 head the size of its body. `examples/` exists so you can look.
 
+## Who made this
+
+Built at **[CMeIn](https://cmein.com)**, where it animates the explainer reels for an AI
+dating-photo product. None of that is in here: this is the character kit on its own, because the
+kit is useful whether or not you care what it was built for.
+
+If it saves you some work, the nicest thing you can do is star
+[the pack it runs on](https://github.com/artemnovitckii/claude-animation-skills).
+
 ## Licence
 
 MIT, see `LICENSE`. The animation pack it builds on is MIT too and belongs to Artem Novitckii;

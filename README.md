@@ -151,6 +151,13 @@ Built at **[CMeIn](https://cmein.com)**, where it animates the explainer reels f
 dating-photo product. None of that is in here: this is the character kit on its own, because the
 kit is useful whether or not you care what it was built for.
 
+The reels this kit draws go out here:
+
+[Instagram](https://www.instagram.com/cmein.app/) ·
+[YouTube](https://www.youtube.com/@cmein-ai) ·
+[Threads](https://www.threads.com/@cmein.app) ·
+[Facebook](https://www.facebook.com/profile.php?id=61590427634614)
+
 If it saves you some work, the nicest thing you can do is star
 [the pack it runs on](https://github.com/artemnovitckii/claude-animation-skills).
 

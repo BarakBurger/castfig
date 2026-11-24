@@ -180,6 +180,18 @@ three glasses, eight skin tones, twenty hair colours. **The option names are the
 kit's**, so one character description drives either renderer. `setPose` takes the same joint map
 `makeHuman` does.
 
+It has the rest of the 2D kit's vocabulary too: the same eight animals as a different **head** on
+the same body (`animal: 'panda'`), so a bear can wear a hoodie here as well; `wings`, `halo`,
+`necklace`, `earrings`, `fur` and `watch`; `makePet3D({ kind })` for the four-legged ones; and the
+presets `CUPID3`, `RICH_MAN3`, `GLAM_WOMAN3` and `GOLD_DIGGER3`.
+
+```js
+import { makeFigure3D, makePet3D, CUPID3, STAND3 } from './cast3d.js';
+const bear = makeFigure3D({ animal: 'bear', outfit: 'hoodie', cols: ['#d8604e', '#f3e3c2'] });
+const cupid = makeFigure3D(CUPID3);
+const dog = makePet3D({ kind: 'dog' });
+```
+
 It imports exactly one thing from the pack, `torsoShell`, and builds the rest itself, so nothing in
 `human.js` is modified.
 
@@ -187,10 +199,14 @@ It imports exactly one thing from the pack, `torsoShell`, and builds the rest it
 |---|---|
 | ![3d builds](sheet/15-3d-builds.jpg) | ![3d outfits](sheet/16-3d-outfits.jpg) |
 | six builds | six outfits, six skin tones |
+| ![3d animals](sheet/18-3d-animals.jpg) | ![3d cast](sheet/19-3d-cast-and-pets.jpg) |
+| eight animals, dressed | Cupid, the presets, and the pets |
 
-Two things that cost me a render. **ESM ignores `NODE_PATH`**, so symlink the kit's `node_modules`
-into the project rather than setting it. And `makeStage` returns the scene **directly**, not
-`{ scene }`.
+Four things that cost me a render. **ESM ignores `NODE_PATH`**, so symlink the kit's `node_modules`
+into the project rather than setting it. **`makeStage` returns the scene directly**, not `{ scene }`.
+**Fit the camera, do not guess it**: half-width is `tan(fov/2) * distance * aspect`, and three
+figures 1.9 units apart need a distance of twelve, not eight. And **a wing sweeps out, not up**:
+stacking the pieces along y gives you a white hoop behind the head.
 
 ## Who made this
 
